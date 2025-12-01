@@ -27,9 +27,10 @@ const BottomNav: React.FC = () => {
         </button>
 
         <button 
-           className={`flex flex-col items-center gap-1 w-16 text-slate-400 dark:text-slate-500 opacity-50 cursor-not-allowed`}
+          onClick={() => navigate('/exercises')}
+          className={`flex flex-col items-center gap-1 w-16 ${isActive('/exercises') ? 'text-primary' : 'text-slate-400 dark:text-slate-500'}`}
         >
-          <span className="material-symbols-outlined">mic</span>
+          <span className={`material-symbols-outlined ${isActive('/exercises') ? 'filled' : ''}`}>mic</span>
           <span className="text-[10px] font-medium">Ejercicios</span>
         </button>
 

@@ -13,25 +13,27 @@ const CreateScale: React.FC<CreateScaleProps> = ({ onSave }) => {
   const [name, setName] = useState('');
   const [notes, setNotes] = useState<Note[]>([]);
 
+  // Musical sorter helper
+  const sortNotes = (notesList: string[]) => {
+      const order = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+      return [...notesList].sort((a: string, b: string) => {
+          const octA = parseInt(a.slice(-1));
+          const octB = parseInt(b.slice(-1));
+          if (octA !== octB) return octA - octB;
+          const noteA = a.slice(0, -1);
+          const noteB = b.slice(0, -1);
+          return order.indexOf(noteA) - order.indexOf(noteB);
+      });
+  };
+
   const toggleNote = (note: Note) => {
     audioService.playNote(note, 0.2); // Feedback sound
     setNotes(prev => {
       if (prev.includes(note)) {
-        return prev.filter(n => n !== note).sort(); // Sort isn't musical sort, but consistent for now
+        const filtered = prev.filter(n => n !== note);
+        return sortNotes(filtered);
       } else {
-        // Basic sort to keep notes in order for display/playback logic
-        // A real musical sort is more complex, but alphabetical works for same-octave roughly if careful.
-        // Better: use a predefined order list to sort.
-        const order = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-        const sorter = (a: string, b: string) => {
-            const octA = parseInt(a.slice(-1));
-            const octB = parseInt(b.slice(-1));
-            if (octA !== octB) return octA - octB;
-            const noteA = a.slice(0, -1);
-            const noteB = b.slice(0, -1);
-            return order.indexOf(noteA) - order.indexOf(noteB);
-        };
-        return [...prev, note].sort(sorter);
+        return sortNotes([...prev, note]);
       }
     });
   };
@@ -81,8 +83,15 @@ const CreateScale: React.FC<CreateScaleProps> = ({ onSave }) => {
         {/* Selected Notes Display */}
         <div className="py-2">
             <p className="text-white/60 text-xs mb-1">Notas Seleccionadas:</p>
-            <p className="text-primary text-base font-medium min-h-[1.5rem]">
-                {notes.map(n => n.replace(/\d/g, '')).join(', ') || "Ninguna"}
+            <p className="text-primary text-base font-medium min-h-[1.5rem] flex flex-wrap gap-1">
+                {notes.length > 0 
+                  ? notes.map((n, i) => (
+                      <span key={i} className="after:content-[','] last:after:content-[''] mr-1">
+                          {n.replace(/\d/g, '')}
+                      </span>
+                    ))
+                  : <span className="text-white/20 italic">Toca el piano para añadir notas</span>
+                }
             </p>
         </div>
 
@@ -99,7 +108,8 @@ const CreateScale: React.FC<CreateScaleProps> = ({ onSave }) => {
             <button onClick={handleSave} className="h-14 bg-primary rounded-xl font-bold text-white shadow-lg active:scale-[0.98] transition-transform">
                 Guardar Escala
             </button>
-            <button onClick={handlePreview} className="h-14 bg-input-dark rounded-xl font-bold text-white shadow-lg active:scale-[0.98] transition-transform">
+            <button onClick={handlePreview} className="h-14 bg-input-dark rounded-xl font-bold text-white shadow-lg active:scale-[0.98] transition-transform flex items-center justify-center gap-2">
+                <span className="material-symbols-outlined">play_arrow</span>
                 Previsualizar
             </button>
             <button onClick={() => navigate(-1)} className="h-14 bg-transparent text-white/60 font-medium">
